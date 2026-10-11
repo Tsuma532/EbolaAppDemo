@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Border Health Monitor — Prototype</title>
+<style>
+:root { color-scheme: light dark; --bg: light-dark(#f4f7f5,#101a19); --surface: light-dark(#ffffff,#192624); --surface2: light-dark(#edf4f0,#22332f); --text: light-dark(#142a25,#edf5f1); --muted: light-dark(#5e726b,#a6b9b1); --border: light-dark(#d7e3dc,#354944); --green: light-dark(#176b50,#65d4a7); --green2: light-dark(#e0f4ea,#204b3b); --amber: light-dark(#9b5b08,#f0bc66); --red: light-dark(#a52d32,#ff8888); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+#app { min-height: 100vh; width: 100%; background: var(--bg); }
+header { background: #123c31; color: #f4fff9; padding: 22px clamp(16px,4vw,48px); display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:12px; }
+.logo { width:44px;height:44px;border-radius:13px;background:#d5f1e1;color:#123c31;display:grid;place-items:center;font-size:24px;font-weight:800; }
+.brand h1 { margin:0;font-size:19px;letter-spacing:-.3px; }
+.brand p { margin:2px 0 0;color:#c3ded2;font-size:12px; }
+.status { border:1px solid #60877a;border-radius:999px;padding:6px 11px;font-size:12px;color:#d8f4e6; }
+.layout { display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1280px;margin:auto;min-height:calc(100vh - 88px); }
+aside { padding:26px 16px;border-right:1px solid var(--border); }
+.nav-label { font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1px;padding:0 12px;margin:5px 0 10px; }
+.nav { width:100%;border:0;background:transparent;color:var(--muted);padding:12px;border-radius:10px;text-align:left;display:flex;gap:10px;align-items:center;font:inherit;cursor:pointer;margin:3px 0; }
+.nav.active,.nav:hover { background:var(--green2);color:var(--green); }
+.nav span:first-child { width:22px;text-align:center; }
+.aside-note { margin:28px 4px 0;padding:14px;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:12px; }
+main { padding:clamp(18px,3vw,36px);min-width:0; }
+.eyebrow { color:var(--green);font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase; }
+h2 { margin:5px 0 6px;font-size:clamp(25px,3vw,34px);letter-spacing:-1px;line-height:1.2; }
+.sub { color:var(--muted);margin:0 0 24px;max-width:750px; }
+.grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px; }
+.metric,.card { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:19px; }
+.metric .label { color:var(--muted);font-size:12px; }
+.metric strong { display:block;font-size:26px;letter-spacing:-.6px;margin:6px 0 2px; }
+.metric small { color:var(--muted);font-size:12px; }
+.card { margin-bottom:16px; }
+.card h3 { font-size:17px;margin:0 0 5px; }
+.card p { margin:4px 0 12px;color:var(--muted); }
+.split { display:grid;grid-template-columns:1.15fr .85fr;gap:16px; }
+.btn { border:0;background:var(--green);color:#092c21;font-weight:800;padding:11px 15px;border-radius:10px;cursor:pointer;font:inherit;font-weight:750; }
+.btn.secondary { background:var(--surface2);color:var(--text);border:1px solid var(--border); }
+.btn.danger { background:var(--red);color:#fff; }
+.actions { display:flex;gap:10px;flex-wrap:wrap;margin-top:14px; }
+label { display:block;font-size:13px;font-weight:700;margin:13px 0 6px; }
+input,select,textarea { width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 12px;color:var(--text);font:inherit; }
+input:focus,select:focus,textarea:focus { outline:2px solid var(--green);outline-offset:1px; }
+.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:0 14px; }
+.checkline { display:flex;align-items:flex-start;gap:10px;margin:12px 0;color:var(--text);font-weight:500; }
+.checkline input { width:18px;height:18px;margin-top:3px;flex:0 0 auto; }
+.notice { border-left:4px solid var(--amber);background:var(--surface2);padding:13px 15px;border-radius:8px;margin:14px 0;color:var(--text); }
+.notice strong { display:block;margin-bottom:3px; }
+.timeline { display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin:16px 0; }
+.day { border:1px solid var(--border);border-radius:10px;padding:10px 5px;text-align:center;background:var(--surface2);font-size:12px; }
+.day b { display:block;font-size:15px; }
+.day.done { border-color:var(--green);background:var(--green2); }
+.day.today { outline:2px solid var(--green); }
+.pill { display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;background:var(--green2);color:var(--green); }
+.pill.warn { background:light-dark(#fff0d9,#4b3418);color:var(--amber); }
+.pill.alert { background:light-dark(#ffe5e5,#4c2527);color:var(--red); }
+.service { display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border); }
+.service:last-child { border-bottom:0; }
+.service b { display:block; }
+.service small { color:var(--muted); }
+.hidden { display:none !important; }
+footer { padding:20px clamp(16px,4vw,48px);border-top:1px solid var(--border);color:var(--muted);font-size:12px; }
+#toast { position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 16px;border-radius:12px;box-shadow:0 8px 30px #0003;display:none;z-index:5;max-width:90vw; }
+@media(max-width:850px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--border);padding:10px 14px;display:flex;overflow:auto;gap:4px}.nav-label,.aside-note{display:none}.nav{white-space:nowrap;width:auto;flex:0 0 auto;padding:10px}.split{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.timeline{grid-template-columns:repeat(4,minmax(0,1fr))}.status{display:none}main{padding:18px 14px}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="brand"><div class="logo">+</div><div><h1>Border Health Monitor</h1><p>Traveller check-in & public health support</p></div></div>
+  <div class="status">DEMO PROTOTYPE · NOT AN OFFICIAL SYSTEM</div>
+</header>
+<div class="layout">
+<aside>
+  <div class="nav-label">WORKSPACE</div>
+  <button class="nav active" data-page="overview"><span>▦</span>Overview</button>
+  <button class="nav" data-page="declaration"><span>☷</span>Traveller & identity</button>
+  <button class="nav" data-page="monitoring"><span>◷</span>21-day monitoring</button>
+  <button class="nav" data-page="services"><span>✚</span>Health services</button>
+  <button class="nav" data-page="officer"><span>▤</span>Officer view</button>
+  <div class="aside-note"><b>Privacy-first demo</b><br>This prototype stores nothing on a server. Use fictional sample details only.</div>
+</aside>
+<main>
+<section id="page-overview" class="page">
+  <div class="eyebrow">Border health workspace</div><h2>Welcome to health check-in</h2><p class="sub">A proposed digital workflow to help travellers report symptoms, receive guidance, and connect with public health services when needed.</p>
+  <div class="grid">
+    <div class="metric"><span class="label">Monitoring window</span><strong>21 days</strong><small>After possible exposure, as directed by health authorities</small></div>
+    <div class="metric"><span class="label">Traveller check-in</span><strong id="overviewStatus">Not started</strong><small>Complete the demo declaration to view next steps</small></div>
+    <div class="metric"><span class="label">Urgent symptom?</span><strong>Act now</strong><small>Do not wait for a scheduled check-in</small></div>
+  </div>
+  <div class="split">
+    <div class="card"><h3>Start a traveller check-in</h3><p>Enter identity, travel and health details using fictional test data. This demonstration does not transmit details to any server or government system.</p><div class="actions"><button class="btn" data-goto="declaration">Start declaration →</button><button class="btn secondary" data-goto="monitoring">View monitoring plan</button></div></div>
+    <div class="card"><h3>When to seek help</h3><p>If you travelled from or were exposed in an area with an Ebola outbreak and develop fever, unusual weakness, headache, muscle pain, vomiting or diarrhoea, contact local health authorities immediately.</p><span class="pill warn">Do not self-diagnose</span></div>
+  </div>
+  <div class="notice"><strong>Important public-health note</strong>Symptoms may appear 2–21 days after infection. Monitoring is based on possible exposure and official guidance—not simply on the length of a foreign stay. A symptom questionnaire cannot diagnose Ebola.</div>
+</section>
+<section id="page-declaration" class="page hidden">
+  <div class="eyebrow">Traveller services</div><h2>Traveller health declaration</h2><p class="sub">Enter fictional information only. The identity section models fields for an authorized, consented or legally permitted border-system integration; this prototype does not connect to passport, national ID, visa, immigration, or police databases.</p>
+  <div class="card"><form id="declarationForm">
+    <div class="card" style="margin:0 0 16px;background:var(--surface2)"><h3>Identity & travel document details</h3><p>In a live system, verified fields should be returned by an official agency API after staff authentication and a lawful purpose check. Never scrape or bypass official websites.</p>
+      <div class="form-grid">
+        <div><label for="fullName">Full name as shown on passport</label><input id="fullName" autocomplete="off" placeholder="Surname and given names" required /></div>
+        <div><label for="dob">Date of birth</label><input id="dob" type="date" required /></div>
+        <div><label for="nationality">Nationality / citizenship</label><input id="nationality" placeholder="Nationality" required /></div>
+        <div><label for="sex">Sex marker on travel document</label><select id="sex"><option value="">Not provided</option><option>F</option><option>M</option><option>X</option><option>Other / as printed</option></select></div>
+        <div><label for="passportNo">Passport number</label><input id="passportNo" autocomplete="off" placeholder="Demo only — use fictional data" required /></div>
+        <div><label for="passportCountry">Passport issuing country</label><input id="passportCountry" placeholder="Issuing country" required /></div>
+        <div><label for="passportIssue">Passport issue date</label><input id="passportIssue" type="date" /></div>
+        <div><label for="passportExpiry">Passport expiry date</label><input id="passportExpiry" type="date" required /></div>
+        <div><label for="idType">Secondary identity document</label><select id="idType"><option value="">None / not applicable</option><option>National ID</option><option>Residence permit</option><option>Visa / eVisa reference</option><option>Other government ID</option></select></div>
+        <div><label for="idReference">ID / visa reference number (optional)</label><input id="idReference" autocomplete="off" placeholder="Only if legally required" /></div>
+      </div>
+    </div>
+    <div class="card" style="margin:0 0 16px"><h3>Contact, itinerary & entry details</h3>
+      <div class="form-grid">
+        <div><label for="phone">Contact phone (include country code)</label><input id="phone" type="tel" placeholder="+country code" /></div>
+        <div><label for="email">Email address</label><input id="email" type="email" placeholder="name@example.com" /></div>
+        <div><label for="residenceCountry">Usual country of residence</label><input id="residenceCountry" placeholder="Country" /></div>
+        <div><label for="address">Address during stay (if needed)</label><input id="address" placeholder="Collect only when necessary" /></div>
+        <div><label for="travelMode">Arrival mode</label><select id="travelMode"><option>Air</option><option>Land</option><option>Sea</option><option>Other</option></select></div>
+        <div><label for="carrier">Airline / carrier</label><input id="carrier" placeholder="Carrier name" /></div>
+        <div><label for="route">Flight / vessel / vehicle reference</label><input id="route" placeholder="Flight or transport number" /></div>
+        <div><label for="entryPurpose">Purpose of entry</label><select id="entryPurpose"><option value="">Choose if applicable</option><option>Tourism</option><option>Work</option><option>Study</option><option>Transit</option><option>Residence / return</option><option>Family visit</option><option>Other</option></select></div>
+        <div><label for="travelDate">Date of arrival</label><input id="travelDate" type="date" required /></div>
+        <div><label for="borderPoint">Border point / port of entry</label><select id="borderPoint" required><option value="">Choose a demo option</option><option>Airport</option><option>Land border</option><option>Seaport</option><option>Other entry point</option></select></div>
+        <div><label for="origin">Country or area visited</label><input id="origin" placeholder="Enter country or area" required /></div>
+        <div><label for="exposureDate">Date of possible exposure (if known)</label><input id="exposureDate" type="date" /></div>
+        <div><label for="emergencyContact">Emergency contact (optional)</label><input id="emergencyContact" placeholder="Name and contact details" /></div>
+      </div>
+    </div>
+    <div class="card" style="margin:0 0 16px"><h3>Official-system verification status (demonstration)</h3><p>The button below only simulates a workflow label. It does not query a passport, national ID, visa or immigration system and cannot confirm identity.</p>
+      <div class="form-grid"><div><label for="verificationSource">Approved source system</label><select id="verificationSource"><option value="">Not connected</option><option>Passport / immigration API</option><option>National ID API</option><option>Visa / residence API</option></select></div><div><label for="verificationResult">Demo verification result</label><input id="verificationResult" value="Not checked — no live connection" readonly /></div></div>
+      <div class="actions"><button class="btn secondary" type="button" id="verifyIdentity">Run demo verification workflow</button></div><p id="verificationNote" aria-live="polite"></p>
+    </div>
+    <div class="card" style="margin:0 0 16px"><h3>Mandatory medical review document</h3>
+      <p>Upload the traveller’s medical review or health assessment document. This is a required field in this prototype. Accepted formats: PDF, JPG, PNG. Do not upload real personal medical information to this demo.</p>
+      <div class="form-grid">
+        <div><label for="medicalReviewFile">Medical review document <span class="pill alert">Required</span></label><input id="medicalReviewFile" name="medicalReviewFile" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required aria-describedby="medicalReviewHelp" /><small id="medicalReviewHelp">Maximum file size: 10 MB. The demo checks the selected file but does not upload or save its contents.</small><p id="medicalReviewFileName" aria-live="polite"></p></div>
+        <div><label for="medicalReviewDate">Date of medical review (optional)</label><input id="medicalReviewDate" type="date" /></div>
+        <div><label for="medicalReviewer">Reviewing clinician / facility (optional)</label><input id="medicalReviewer" placeholder="Name or facility" /></div>
+      </div>
+      <div class="notice"><strong>Production requirement</strong>A real deployment must securely transmit and store this document with authorized access, encryption, audit logs, and a defined retention period. Do not use a missing or unreadable upload as a reason to delay emergency assessment or care.</div>
+    </div>
+    <label>In the past 21 days, have you had close contact with someone known or suspected to have Ebola, or their body fluids?</label>
+    <div class="checkline"><input type="radio" name="contact" value="yes" required /><span>Yes</span></div><div class="checkline"><input type="radio" name="contact" value="no" /><span>No</span></div><div class="checkline"><input type="radio" name="contact" value="unsure" /><span>Not sure</span></div>
+    <label>Do you currently have any of these symptoms?</label>
+    <div class="form-grid">
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Fever" /> Fever</label>
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Severe weakness or fatigue" /> Severe weakness or fatigue</label>
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Headache or muscle pain" /> Headache or muscle pain</label>
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Vomiting or diarrhoea" /> Vomiting or diarrhoea</label>
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Abdominal pain or rash" /> Abdominal pain or rash</label>
+      <label class="checkline"><input type="checkbox" name="symptoms" value="Unexplained bleeding" /> Unexplained bleeding</label>
+    </div>
+    <div class="notice"><strong>Identity and privacy safeguards</strong>Use fictional test data only. A production deployment needs written agency authorization, secure API credentials, encryption, access controls, audit trails, retention/deletion rules, and a privacy impact assessment. Do not use identity-match results alone to deny travel, care, or other services; require authorized human review and an appeal/correction path.</div>
+    <div class="actions"><button class="btn" type="submit">Submit demo declaration</button><button class="btn secondary" type="reset">Clear form</button></div>
+  </form></div>
+  <div id="declarationResult" class="card hidden" aria-live="polite"></div>
+</section>
+<section id="page-monitoring" class="page hidden">
+  <div class="eyebrow">Follow-up</div><h2>21-day monitoring plan</h2><p class="sub">Use this sample timeline to understand the check-in concept. The official monitoring period and follow-up frequency must be set by public health professionals based on exposure assessment.</p>
+  <div class="card"><h3>Daily symptom check-in</h3><p>Tap a day to mark a demo check-in. This does not contact a health authority or create an official record.</p><div class="timeline" id="timeline"></div><div class="actions"><button class="btn secondary" id="resetTimeline">Reset demo timeline</button></div><p id="timelineProgress">0 of 21 demo check-ins completed</p></div>
+  <div class="split"><div class="card"><h3>Each day, ask yourself</h3><div class="checkline"><input type="checkbox" /> <span>Do I feel feverish or unusually weak?</span></div><div class="checkline"><input type="checkbox" /> <span>Do I have headache, muscle pain or sore throat?</span></div><div class="checkline"><input type="checkbox" /> <span>Have vomiting, diarrhoea or a rash developed?</span></div><div class="checkline"><input type="checkbox" /> <span>Have I followed the instructions from health officials?</span></div></div><div class="card"><h3>If symptoms begin</h3><p>Contact local health authorities or a healthcare provider immediately. Explain your travel history and any possible exposure, and follow their instructions about transport and care.</p><button class="btn" data-goto="services">View service guidance →</button></div></div>
+</section>
+<section id="page-services" class="page hidden">
+  <div class="eyebrow">Support and referral</div><h2>Health services</h2><p class="sub">Service categories for a future implementation. Replace these demo items with verified local hotline numbers, facilities and referral procedures before launch.</p>
+  <div class="card">
+    <div class="service"><div><b>Urgent symptom assessment</b><small>For symptoms after possible exposure</small></div><span class="pill alert">Urgent</span></div>
+    <div class="service"><div><b>Public health follow-up</b><small>Exposure assessment and monitoring instructions</small></div><span class="pill">Referral</span></div>
+    <div class="service"><div><b>Traveller information desk</b><small>Travel history, prevention guidance and next steps</small></div><span class="pill">Information</span></div>
+    <div class="service"><div><b>Language and accessibility support</b><small>Interpreter or accessible-format assistance</small></div><span class="pill">Support</span></div>
+  </div>
+  <div class="notice"><strong>Emergency guidance</strong>If you have symptoms and believe you may have been exposed, avoid unannounced travel to a clinic or crowded public areas; contact local health authorities first for safe instructions. If you are severely unwell, use the locally designated emergency service.</div>
+  <div class="card"><h3>Local service directory (demo)</h3><label for="countryService">Country / jurisdiction</label><input id="countryService" placeholder="e.g. Kenya" /><label for="localContact">Verified public health hotline or official URL</label><input id="localContact" placeholder="Add only after official verification" /><div class="actions"><button class="btn secondary" id="saveService">Save locally for this demo</button></div><p id="serviceSaved" aria-live="polite"></p></div>
+</section>
+<section id="page-officer" class="page hidden">
+  <div class="eyebrow">Authorized staff concept</div><h2>Officer view</h2><p class="sub">A sample operations view showing the kinds of workflow controls a real system might need. All counts below are illustrative, not live data.</p>
+  <div class="grid"><div class="metric"><span class="label">Demo declarations</span><strong id="officerCount">0</strong><small>Only this session's submitted test form</small></div><div class="metric"><span class="label">Referral rule</span><strong>Human review</strong><small>No automated diagnosis or enforcement</small></div><div class="metric"><span class="label">Identity link</span><strong id="identityStatus">Not connected</strong><small>No database or agency connection</small></div></div>
+  <div class="card"><h3>Suggested safeguards before deployment</h3><ul><li>Written approval and clear legal authority from relevant public health and border agencies.</li><li>Collect only information necessary for a defined public-health purpose.</li><li>Role-based staff access, audit logs, encryption, retention limits and deletion procedures.</li><li>Human review for alerts; no automatic denial of travel or services based only on a form.</li><li>Accessible multilingual design and a non-digital alternative at border points.</li><li>Security testing, incident response and independent privacy review.</li></ul></div>
+  <div class="card"><h3>Current demo record</h3><p id="officerRecord">No demo declaration submitted in this session.</p><button class="btn secondary" id="clearRecord">Clear local demo record</button></div>
+</section>
+</main>
+</div>
+<footer>Border Health Monitor · Concept by Tsuma · Demonstration only, not an official public health system. Not a diagnostic tool. Confirm current guidance with qualified health authorities.</footer>
+</div>
+<div id="toast" role="status"></div>
+<script>
+const pages = [...document.querySelectorAll('.page')];
+const navs = [...document.querySelectorAll('.nav')];
+let record = null;
+let completed = new Set();
+function showPage(name){ pages.forEach(p=>p.classList.toggle('hidden',p.id!=='page-'+name)); navs.forEach(n=>n.classList.toggle('active',n.dataset.page===name)); window.scrollTo({top:0,behavior:'smooth'}); }
+navs.forEach(n=>n.addEventListener('click',()=>showPage(n.dataset.page)));
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.goto)));
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2800);}
+function renderTimeline(){const root=document.getElementById('timeline');root.innerHTML='';for(let d=1;d<=21;d++){const b=document.createElement('button');b.className='day'+(completed.has(d)?' done':'');b.innerHTML='<b>'+d+'</b>Day';b.setAttribute('aria-label','Day '+d+(completed.has(d)?' completed':' not completed'));b.addEventListener('click',()=>{completed.has(d)?completed.delete(d):completed.add(d);renderTimeline();});root.appendChild(b);}document.getElementById('timelineProgress').textContent=completed.size+' of 21 demo check-ins completed';}
+renderTimeline();document.getElementById('resetTimeline').addEventListener('click',()=>{completed.clear();renderTimeline();toast('Demo timeline reset.');});
+const medicalReviewInput=document.getElementById('medicalReviewFile');
+medicalReviewInput.addEventListener('change',()=>{const file=medicalReviewInput.files[0];const label=document.getElementById('medicalReviewFileName');if(!file){label.textContent='';return;}const allowed=['application/pdf','image/jpeg','image/png'];const validExt=/\.(pdf|jpe?g|png)$/i.test(file.name);if((!allowed.includes(file.type)&&!validExt)||file.size>10*1024*1024){medicalReviewInput.setCustomValidity(file.size>10*1024*1024?'File is larger than 10 MB. Please choose a smaller file.':'Unsupported file type. Please choose a PDF, JPG or PNG.');label.textContent=file.size>10*1024*1024?'File too large (maximum 10 MB).':'Unsupported file type.';medicalReviewInput.reportValidity();return;}medicalReviewInput.setCustomValidity('');label.textContent='Selected: '+file.name+' ('+(file.size/1024/1024).toFixed(2)+' MB). File remains on this device and is not transmitted by this demo.';});
+document.getElementById('declarationForm').addEventListener('submit',e=>{e.preventDefault();const reviewFile=medicalReviewInput.files[0];if(!reviewFile){medicalReviewInput.reportValidity();return;}if(reviewFile.size>10*1024*1024){medicalReviewInput.setCustomValidity('File is larger than 10 MB. Please choose a smaller file.');medicalReviewInput.reportValidity();return;}const symptoms=[...document.querySelectorAll('input[name="symptoms"]:checked')].map(x=>x.value);const contact=document.querySelector('input[name="contact"]:checked')?.value||'unsure';record={fullName:document.getElementById('fullName').value,dob:document.getElementById('dob').value,nationality:document.getElementById('nationality').value,passportNo:document.getElementById('passportNo').value,passportCountry:document.getElementById('passportCountry').value,passportExpiry:document.getElementById('passportExpiry').value,idType:document.getElementById('idType').value,idReference:document.getElementById('idReference').value,phone:document.getElementById('phone').value,email:document.getElementById('email').value,residenceCountry:document.getElementById('residenceCountry').value,travelMode:document.getElementById('travelMode').value,carrier:document.getElementById('carrier').value,route:document.getElementById('route').value,entryPurpose:document.getElementById('entryPurpose').value,date:document.getElementById('travelDate').value,border:document.getElementById('borderPoint').value,origin:document.getElementById('origin').value,exposureDate:document.getElementById('exposureDate').value,medicalReviewFileName:reviewFile.name,medicalReviewDate:document.getElementById('medicalReviewDate').value,medicalReviewer:document.getElementById('medicalReviewer').value,contact,symptoms};document.getElementById('overviewStatus').textContent='Submitted';document.getElementById('officerCount').textContent='1';const out=document.getElementById('declarationResult');out.classList.remove('hidden');const urgent=symptoms.length>0||contact==='yes'||contact==='unsure';out.innerHTML='<h3>Demo declaration received</h3><p>Country/area visited: <b></b></p><p>Possible exposure reported: <b></b></p><p>Symptoms selected: <b></b></p><div class="notice"><strong>'+(symptoms.length?'Prompt health advice recommended':contact==='yes'||contact==='unsure'?'Public health assessment may be needed':'Follow official local guidance')+'</strong>'+(symptoms.length?'Because symptoms were selected, contact local health authorities or a healthcare provider immediately and explain your travel history. Do not rely on this app to assess or rule out Ebola.':contact==='yes'||contact==='unsure'?'Contact a qualified public health professional for an exposure assessment and instructions.':'Continue to follow official public health advice and seek help promptly if symptoms develop.')+'</div><div class="actions"><button class="btn secondary" id="goMonitoring">Open monitoring plan</button></div>';const bs=out.querySelectorAll('b');bs[0].textContent=record.origin;bs[1].textContent=contact==='yes'?'Yes':contact==='no'?'No':'Not sure';bs[2].textContent=symptoms.length?symptoms.join(', '):'None selected';out.querySelector('#goMonitoring').addEventListener('click',()=>showPage('monitoring'));document.getElementById('officerRecord').textContent='Demo form submitted for '+record.fullName+' (passport ending '+record.passportNo.slice(-3)+'). Origin: '+record.origin+'. Exposure: '+record.contact+'. Symptoms selected: '+(symptoms.join(', ')||'none')+'. Identity verification remains unconfirmed.';toast('Demo declaration submitted in this browser session.');});
+document.getElementById('declarationForm').addEventListener('reset',()=>{document.getElementById('declarationResult').classList.add('hidden');document.getElementById('medicalReviewFileName').textContent='';medicalReviewInput.setCustomValidity('');});
+
+document.getElementById('verifyIdentity').addEventListener('click',()=>{document.getElementById('verificationResult').value='Not verified — demo only';document.getElementById('verificationNote').textContent='No external request was made. To enable real synchronization, the relevant border agency must provide an approved API, credentials, data-sharing authority, and technical specifications.';document.getElementById('identityStatus').textContent='Not connected';toast('Demo only: no official database was contacted.');});
+document.getElementById('saveService').addEventListener('click',()=>{const c=document.getElementById('countryService').value.trim();const v=document.getElementById('localContact').value.trim();document.getElementById('serviceSaved').textContent=c||v?'Demo directory entry noted for this session only. Verify all details before relying on them.':'Enter a jurisdiction or verified contact first.';});
+document.getElementById('clearRecord').addEventListener('click',()=>{record=null;document.getElementById('officerCount').textContent='0';document.getElementById('officerRecord').textContent='No demo declaration submitted in this session.';document.getElementById('overviewStatus').textContent='Not started';document.getElementById('declarationResult').classList.add('hidden');document.getElementById('declarationForm').reset();toast('Local demo record cleared.');});
+</script>
+</body>
+</html>
